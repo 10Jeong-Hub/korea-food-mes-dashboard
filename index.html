@@ -2506,6 +2506,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const a = await navigator.credentials.get({ publicKey: { challenge: crypto.getRandomValues(new Uint8Array(32)), allowCredentials: [{ type: 'public-key', id: unb64u(credId), transports: ['internal'] }], userVerification: 'required', timeout: 60000 } });
     return !!a;
   }
+  // 지문(얼굴) 확인이 안 될 때 원인별 안내
+  function bioErrMsg(e) {
+    const n = e && e.name;
+    if (n === 'NotAllowedError') return '지문(얼굴) 확인이 취소되었거나 시간이 지났습니다. 다시 누르거나 비밀번호로 로그인하세요. 계속 안 되면 비밀번호로 로그인한 뒤 설정에서 지문을 다시 켜 주세요.';
+    if (n === 'InvalidStateError' || n === 'NotFoundError') return '이 기기에 등록된 지문을 찾지 못했습니다. 비밀번호로 로그인한 뒤 설정에서 지문을 다시 켜 주세요.';
+    if (n === 'SecurityError' || n === 'NotSupportedError') return '이 주소(화면)에서는 지문 로그인을 쓸 수 없습니다. 비밀번호로 로그인하세요.';
+    return '지문(얼굴) 확인에 실패했습니다. 비밀번호로 로그인하세요.';
+  }
   let loginKeys = null;
   function showLogin(opts = {}) {
     const A = authLS();
@@ -2562,11 +2570,21 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if (canBio && !a.bio && !a.bioAsked) { asking = true; msg = ''; err = false; draw(); return; }
       enterApp();
     };
+    let bioBusy = false;
     const tryBio = async manual => {
-      const a = authLS(); if (!a.bio) return;
-      try {
-        if (await bioVerify(a.bio.credId)) { sessionStorage.setItem(SS_SESSION, 'ok'); enterApp(); }
-      } catch (e) { if (manual) { msg = '지문(얼굴) 확인이 취소되었거나 실패했습니다. 비밀번호로 로그인하세요.'; err = true; draw(); } }
+      const a = authLS(); if (!a.bio || bioBusy) return;
+      bioBusy = true;
+      let ok = false;
+      try { ok = await bioVerify(a.bio.credId); }
+      catch (e) {
+        bioBusy = false;
+        if (!manual) return;   // 화면을 열 때 자동 시도가 막힌 경우: 버튼을 누르면 됨
+        msg = bioErrMsg(e); err = true; draw(); return;
+      }
+      bioBusy = false;
+      if (!ok) return;
+      sessionStorage.setItem(SS_SESSION, 'ok');
+      enterApp();
     };
     if (loginKeys) document.removeEventListener('keydown', loginKeys);
     loginKeys = e => {   // PC 키보드: 숫자 · 백스페이스 · Enter (아이디 칸에 있을 때는 그 칸에 입력)
@@ -2586,13 +2604,16 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if (note) setTimeout(() => toast(note, isErr), 300);
   }
   function logout() {
-    const go2 = () => { sessionStorage.removeItem(SS_SESSION); state.form = null; closeModal(); closePop(); showLogin({ noAuto: true, msg: '로그아웃했습니다.' }); };
+    const go2 = () => { sessionStorage.removeItem(SS_SESSION); state.form = null; state.tab = 'home'; closeModal(); closePop(); closeConfirm(); showLogin({ noAuto: true, msg: '로그아웃했습니다.' }); };
     if (state.form && state.form._dirty) ask('저장하지 않은 입력이 있습니다. 그래도 로그아웃할까요?', '로그아웃', go2, true); else go2();
   }
   let started = false;
   function startApp() {
-    shell(); renderSync(); renderNav(); paint();
-    if (!started) { started = true; loadLocal(); renderNav(); paint(); initCloud(); }
+    shell(); renderSync();
+    if (!started) { started = true; loadLocal(); initCloud(); }
+    if (['out', 'wash', 'pack'].includes(state.tab) && !(state.form && state.form._init)) state.form = ({ out: initOutT, wash: initWashT, pack: initPackT })[state.tab]({});
+    renderNav();
+    try { paint(); } catch (e) { console.warn(e); state.tab = 'home'; state.form = null; renderNav(); paint(); }
   }
 
   function boot() {
