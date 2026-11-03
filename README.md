@@ -5,16 +5,7 @@
 ---
 
 ## 🚀 배포 방법 (약 5분 소요)
-
-1. **GitHub 로그인** → 오른쪽 위 `+` → **New repository**
-2. **Repository name** 설정 (예: `kf-worklog`) → **Public** 선택 → **Create repository**
-3. 새 저장소 화면에서 **uploading an existing file** 클릭
-4. 프로젝트 폴더의 전체 파일 드래그 앤 드롭  
-   *(index.html, manifest.webmanifest, icon-*.png, apple-touch-icon.png, favicon.png, .nojekyll, README.md)*  
-   - `.nojekyll`처럼 숨김 파일이 보이지 않아도 정상 동작합니다.
-5. 아래 **Commit changes** 클릭
-6. 저장소 **Settings** → **Pages** → **Source: Deploy from a branch** → **Branch: main / /(root)** 선택 후 **Save**
-7. 1~2분 뒤 상단에 접속 주소가 생성됩니다: `https://<GitHub아이디>.github.io/korea-food-mes-dashboard/`
+> 상단에 접속 주소가 생성됩니다: `https://<GitHub아이디>.github.io/korea-food-mes-dashboard/`
 
 ---
 
