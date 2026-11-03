@@ -14,7 +14,7 @@
    - `.nojekyll`처럼 숨김 파일이 보이지 않아도 정상 동작합니다.
 5. 아래 **Commit changes** 클릭
 6. 저장소 **Settings** → **Pages** → **Source: Deploy from a branch** → **Branch: main / /(root)** 선택 후 **Save**
-7. 1~2분 뒤 상단에 접속 주소가 생성됩니다: `https://<GitHub아이디>.github.io/kf-worklog/`
+7. 1~2분 뒤 상단에 접속 주소가 생성됩니다: `https://<GitHub아이디>.github.io/korea-food-mes-dashboard/`
 
 ---
 
